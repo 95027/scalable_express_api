@@ -1,5 +1,6 @@
 const express = require("express");
 const routes = require("../routes");
+const errorMiddleware = require("../common/middlewares/error.middleware");
 
 module.exports = () => {
   const app = express();
@@ -8,7 +9,11 @@ module.exports = () => {
 
   app.use("/api/v1", routes);
 
-  app.get("/health", (req, res) => res.send("OK"));
+  app.get("/", (req, res) => {
+    res.status(200).json({ message: "API is running..." });
+  });
+
+  app.use(errorMiddleware);
 
   return app;
 };

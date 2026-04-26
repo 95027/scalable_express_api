@@ -1,7 +1,7 @@
 const router = require("express").Router();
 
-router.get("/", (req, res) => {
-  res.status(200).json({ message: "API is running..." });
-});
+const authRoutes = require("../modules/auth/auth.routes");
+
+router.use("/auth", authRoutes);
 
 module.exports = router;

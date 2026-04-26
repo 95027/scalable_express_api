@@ -1,8 +1,9 @@
-const sequelize = require("../config/db");
+const { sequelize } = require("../models");
 
 module.exports = async () => {
   try {
     await sequelize.authenticate();
+    await sequelize.sync();
     console.log("DB connected");
   } catch (error) {
     console.error("DB connection failed", error);
