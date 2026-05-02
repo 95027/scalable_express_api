@@ -2,7 +2,7 @@ const router = require("express").Router();
 const asyncHandler = require("../../common/middlewares/asyncHandler");
 const validate = require("../../common/middlewares/validate.middleware");
 const authController = require("./auth.controller");
-const { registerSchema } = require("./auth.validation");
+const { registerSchema, loginSchema } = require("./auth.validation");
 
 router.post(
   "/register",
@@ -11,7 +11,7 @@ router.post(
 );
 router.post(
   "/login",
-  validate(registerSchema),
+  validate(loginSchema),
   asyncHandler(authController.login),
 );
 

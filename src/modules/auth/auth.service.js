@@ -24,7 +24,8 @@ class Authservice {
     return this.generateTokens(user);
   }
 
-  static async login(email, password) {
+  static async login(data) {
+    const { email, password } = data;
     const user = await User.findOne({ where: { email } });
 
     if (!user) throw new AppError("User not Found", 404);
