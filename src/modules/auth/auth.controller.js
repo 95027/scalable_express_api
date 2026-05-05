@@ -1,19 +1,23 @@
 const AuthService = require("./auth.service");
 
 exports.register = async (req, res, next) => {
-  const data = req.validated;
-  const tokens = await AuthService.register(data);
+  const user = await AuthService.register(req.validated);
 
   res.status(201).json({
     message: "User registered successfully",
     success: true,
-    data: tokens,
+    data: user,
   });
 };
 
 exports.login = async (req, res, next) => {
-  const data = req.validated;
-  const tokens = await AuthService.login(data);
+  const tokens = await AuthService.login(req.validated);
+
+  res.cookie("accessToken", tokens.accessToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+  });
 
   res.status(200).json({
     success: true,
@@ -21,4 +25,3 @@ exports.login = async (req, res, next) => {
     message: "User logged in successfully",
   });
 };
-

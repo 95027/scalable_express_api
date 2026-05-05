@@ -3,25 +3,33 @@ const jwt = require("jsonwebtoken");
 const env = require("../../config/env");
 const { User } = require("../../models");
 const AppError = require("../../common/errors/AppError");
+const roles = require("../../common/constants/roles");
 
 class Authservice {
   static async register(data) {
+    const { email, password, role = roles.USER } = data;
     const existing = await User.findOne({
-      where: { email: data.email },
+      where: { email },
     });
 
     if (existing) {
       throw new AppError("Email already exists", 400);
     }
 
-    const hashedPassword = await bcrypt.hash(data.password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
       ...data,
       password: hashedPassword,
     });
 
-    return this.generateTokens(user);
+    if (role === roles.VENDOR) {
+    }
+
+    const safeUser = user.get({ plain: true });
+    delete safeUser.password;
+
+    return safeUser;
   }
 
   static async login(data) {
@@ -30,9 +38,29 @@ class Authservice {
 
     if (!user) throw new AppError("User not Found", 404);
 
+    if (user.lockUntil && user.lockUntil > new Date()) {
+      throw new AppError("Account is Locked, Try Again Later", 403);
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
 
-    if (!isMatch) throw new AppError("Invalid credentials", 401);
+    if (!isMatch) {
+      user.loginAttempts += 1;
+
+      if (user.loginAttempts >= 5) {
+        user.lockUntil = new Date(Date.now() + 15 * 60 * 1000);
+        user.loginAttempts = 0;
+      }
+
+      await user.save();
+      throw new AppError("Invalid credentials", 401);
+    }
+
+    user.loginAttempts = 0;
+    user.lockUntil = null;
+    user.lastLoginAt = new Date();
+
+    await user.save();
 
     return this.generateTokens(user);
   }

@@ -4,20 +4,19 @@ const { User } = require("../../models");
 
 module.exports = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
+    const token =
+      req.cookies?.accessToken || req.headers.authorization?.split(" ")[1];
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!token) {
       return res.status(401).json({
         success: false,
         message: "Unauthorized",
       });
     }
 
-    const token = authHeader.split(" ")[1];
-
     const decoded = jwt.verify(token, env.jwt.secret);
 
-    if (!decoded.id) {
+    if (!decoded?.id) {
       return res.status(401).json({
         success: false,
         message: "Invalid token payload",
@@ -35,7 +34,7 @@ module.exports = async (req, res, next) => {
       });
     }
 
-    req.user = user.get({ plain: true });
+    req.user = user;
 
     next();
   } catch (error) {
