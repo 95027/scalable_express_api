@@ -1,3 +1,4 @@
+const env = require("../../config/env");
 const AuthService = require("./auth.service");
 
 exports.register = async (req, res, next) => {
@@ -15,13 +16,28 @@ exports.login = async (req, res, next) => {
 
   res.cookie("accessToken", tokens.accessToken, {
     httpOnly: true,
-    secure: true,
-    sameSite: "strict",
+    secure: env.nodeEnv === "production",
+    sameSite: "lax",
+    maxAge: 15 * 60 * 1000,
   });
 
   res.status(200).json({
     success: true,
     data: tokens,
     message: "User logged in successfully",
+  });
+};
+
+exports.logout = async (req, res, next) => {
+  res.clearCookie("accessToken", {
+    httpOnly: true,
+    secure: env.nodeEnv === "productiion",
+    sameSite: "lax",
+    maxAge: 15 * 60 * 1000,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
   });
 };
