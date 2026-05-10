@@ -1,4 +1,4 @@
-const ROLES = require("../../common/constants/roles");
+const { ROLES } = require("../../common/constants/roles");
 const sequelize = require("../../config/db");
 const { DataTypes } = require("sequelize");
 

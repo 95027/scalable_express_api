@@ -1,4 +1,9 @@
-const env = require("../../config/env");
+const { COOKIE_NAMES } = require("../../common/constants/auth.constants");
+const {
+  cookieOptions,
+  accessCookieOptions,
+  refreshCookieOptions,
+} = require("../../common/utils/cookies");
 const AuthService = require("./auth.service");
 
 exports.register = async (req, res, next) => {
@@ -12,32 +17,37 @@ exports.register = async (req, res, next) => {
 };
 
 exports.login = async (req, res, next) => {
-  const tokens = await AuthService.login(req.validated);
+  const { accessToken, refreshToken } = await AuthService.login(req.validated);
 
-  res.cookie("accessToken", tokens.accessToken, {
-    httpOnly: true,
-    secure: env.nodeEnv === "production",
-    sameSite: "lax",
-    maxAge: 15 * 60 * 1000,
-  });
+  res.cookie(COOKIE_NAMES.ACCESS_TOKEN, accessToken, accessCookieOptions);
+
+  res.cookie(COOKIE_NAMES.REFRESH_TOKEN, refreshToken, refreshCookieOptions);
 
   res.status(200).json({
     success: true,
-    data: tokens,
     message: "User logged in successfully",
   });
 };
 
 exports.logout = async (req, res, next) => {
-  res.clearCookie("accessToken", {
-    httpOnly: true,
-    secure: env.nodeEnv === "productiion",
-    sameSite: "lax",
-    maxAge: 15 * 60 * 1000,
-  });
+  res.clearCookie(COOKIE_NAMES.ACCESS_TOKEN, cookieOptions);
+  res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN, cookieOptions);
 
   res.status(200).json({
     success: true,
     message: "Logged out successfully",
+  });
+};
+
+exports.refreshToken = async (req, res, next) => {
+  const token = req.cookies?.[COOKIE_NAMES.REFRESH_TOKEN];
+
+  const accessToken = await AuthService.refreshAccessToken(token);
+
+  res.cookie(COOKIE_NAMES.ACCESS_TOKEN, accessToken, accessCookieOptions);
+
+  res.status(200).json({
+    success: true,
+    message: "Token refreshed successfully",
   });
 };

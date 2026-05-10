@@ -3,11 +3,11 @@ const jwt = require("jsonwebtoken");
 const env = require("../../config/env");
 const { User } = require("../../models");
 const AppError = require("../../common/errors/AppError");
-const roles = require("../../common/constants/roles");
+const { ROLES } = require("../../common/constants/roles");
 
 class Authservice {
   static async register(data) {
-    const { email, password, role = roles.USER } = data;
+    const { email, password, role = ROLES.USER } = data;
     const existing = await User.findOne({
       where: { email },
     });
@@ -23,7 +23,7 @@ class Authservice {
       password: hashedPassword,
     });
 
-    if (role === roles.VENDOR) {
+    if (role === ROLES.VENDOR) {
     }
 
     const safeUser = user.get({ plain: true });
@@ -72,9 +72,42 @@ class Authservice {
       email: user.email,
     };
 
-    const accessToken = jwt.sign(payload, env.jwt.secret, { expiresIn: "15m" });
+    const accessToken = jwt.sign(payload, env.jwt.secret, {
+      expiresIn: env.jwt.accessExpiresIn,
+    });
 
-    return { accessToken };
+    const refreshToken = jwt.sign(payload, env.jwt.refreshSecret, {
+      expiresIn: env.jwt.refreshExpiresIn,
+    });
+
+    return { accessToken, refreshToken };
+  }
+
+  static async refreshAccessToken(token) {
+    if (!token) {
+      throw new AppError("Un Authorized", 401);
+    }
+    let decoded;
+    try {
+      decoded = jwt.verify(token, env.jwt.refreshSecret);
+    } catch (error) {
+      throw new AppError("Invalid refresh token", 401);
+    }
+    const user = await User.findByPk(decoded.id);
+
+    if (!user || !user.isActive) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    const payload = {
+      id: user.id,
+      role: user.role,
+      email: user.email,
+    };
+
+    return jwt.sign(payload, env.jwt.secret, {
+      expiresIn: env.jwt.accessExpiresIn,
+    });
   }
 }
 
