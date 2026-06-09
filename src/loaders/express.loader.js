@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 const helmet = require("helmet");
 const cors = require("cors");
 const env = require("../config/env");
+const EmailService = require("../services/email/email.service");
 
 module.exports = () => {
   const app = express();
@@ -29,6 +30,11 @@ module.exports = () => {
   app.get("/", (req, res) => {
     res.status(200).json({ message: "API is running..." });
   });
+
+  // EmailService.sendWelcomeMail({
+  //   to: "kumarchembeti1998@gmail.com",
+  //   name: "sai",
+  // });
 
   app.use(errorMiddleware);
 
