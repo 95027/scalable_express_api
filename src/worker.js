@@ -1,0 +1,1 @@
+require("./workers/email.worker");
