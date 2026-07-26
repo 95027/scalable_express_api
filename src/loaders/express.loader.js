@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require('path');
 const routes = require("../routes");
 const errorMiddleware = require("../common/middlewares/error.middleware");
 const cookieParser = require("cookie-parser");
@@ -23,6 +24,8 @@ module.exports = () => {
   app.use(express.json());
 
   app.use(cookieParser());
+
+  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
   app.use("/api/v1", routes);
 

@@ -3,12 +3,12 @@ const FileService = require("./file.service")
 
 exports.upload = async (req, res) => {
 
-    const file = await FileService.upload(req);
+    const response = await FileService.upload(req.body, req.files);
 
     res.status(201).json({
         success: true,
         message: "file uploaded successfully...",
-        data: file
+        data: response
     });
 
 }

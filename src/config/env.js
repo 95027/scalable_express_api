@@ -22,4 +22,5 @@ module.exports = {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  fileBaseUrl: process.env.FILE_BASE_URL,
 };
