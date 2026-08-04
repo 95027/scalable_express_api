@@ -11,6 +11,6 @@ const base = {
 exports.registerSchema = z.object(base);
 
 exports.loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
+  email: z.string().email({ message: "Please enter valid email" }),
+  password: z.string().min(6, { message: "Password must be atleast 6 characters" }),
 });

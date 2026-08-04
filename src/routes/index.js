@@ -6,7 +6,7 @@ const userRoutes = require("../modules/user/user.routes");
 const fileRoutes = require("../modules/file/file.routes");
 
 router.use("/auth", authLimiter, authRoutes);
-router.use("/users", userRoutes);
+router.use("/user", userRoutes);
 router.use("/upload", fileRoutes);
 
 module.exports = router;
