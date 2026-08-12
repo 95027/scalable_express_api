@@ -1,5 +1,4 @@
 exports.ROLES = {
-  USER: "user",
+  CUSTOMER: "customer",
   ADMIN: "admin",
-  VENDOR: "vendor",
 };

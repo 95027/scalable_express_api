@@ -5,7 +5,7 @@ const base = {
   name: z.string().min(3),
   email: z.string().email(),
   password: z.string().min(6),
-  role: z.enum([ROLES.USER, ROLES.VENDOR]).optional(),
+  // role: z.enum([ROLES.CUSTOMER]).optional(),
 };
 
 exports.registerSchema = z.object(base);

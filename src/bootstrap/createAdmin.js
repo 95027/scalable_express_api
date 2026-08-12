@@ -10,7 +10,7 @@ const createAdmin = async () => {
         return;
     }
 
-    const hashedPass = bcrypt.hashSync("password", 10);
+    const hashedPass = await bcrypt.hash("password", 10);
 
     await User.create({ name: "admin", email: "admin@example.com", password: hashedPass, role: ROLES.ADMIN });
 

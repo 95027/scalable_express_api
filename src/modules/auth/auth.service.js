@@ -7,7 +7,7 @@ const { ROLES } = require("../../common/constants/roles");
 
 class Authservice {
   static async register(data) {
-    const { email, password, role = ROLES.USER } = data;
+    const { name, email, password } = data;
     const existing = await User.findOne({
       where: { email },
     });
@@ -19,12 +19,11 @@ class Authservice {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
-      ...data,
+      name,
+      email,
+      role: ROLES.CUSTOMER,
       password: hashedPassword,
     });
-
-    if (role === ROLES.VENDOR) {
-    }
 
     const safeUser = user.get({ plain: true });
     delete safeUser.password;
