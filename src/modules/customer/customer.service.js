@@ -8,11 +8,7 @@ class CustomerService {
     static async getCustomers(query) {
         const { page = 1, limit = 10, isActive, search } = query;
 
-        const where = {};
-
-        if (role) {
-            where.role = ROLES.CUSTOMER;
-        }
+        const where = { role: ROLES.CUSTOMER };
 
         if (isActive !== undefined) {
             where.isActive = isActive === "true";

@@ -6,9 +6,9 @@ const User = sequelize.define(
   "User",
   {
     id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
-      autoIncrement: true,
     },
     name: {
       type: DataTypes.STRING,
@@ -18,6 +18,10 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
+    },
+    phone: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     password: {
       type: DataTypes.STRING,
@@ -72,6 +76,6 @@ const User = sequelize.define(
   },
 );
 
-User.associate = (models) => {};
+User.associate = (models) => { };
 
 module.exports = User;
