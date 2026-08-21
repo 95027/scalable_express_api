@@ -6,7 +6,7 @@ exports.getCustomers = async (req, res) => {
 
     res.status(200).json({
         success: true,
-        data: result.users,
+        data: result.customers,
         pagination: result.pagination,
     });
 }

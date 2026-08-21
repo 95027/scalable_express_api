@@ -44,7 +44,7 @@ class CustomerService {
         });
 
         return {
-            users: rows,
+            customers: rows,
             pagination: {
                 total: count,
                 page: pageNum,

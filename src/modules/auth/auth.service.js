@@ -35,7 +35,7 @@ class Authservice {
     const { email, password } = data;
     const user = await User.findOne({ where: { email } });
 
-    if (!user) throw new AppError("User not Found", 404);
+    if (!user) throw new AppError("Invalid Credentials", 401);
 
     if (user.lockUntil && user.lockUntil > new Date()) {
       throw new AppError("Account is Locked, Try Again Later", 403);
