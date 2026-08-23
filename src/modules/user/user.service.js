@@ -7,9 +7,6 @@ class UserService {
 
   static async getUserById(id) {
     const user = await User.findByPk(id, {
-      attributes: {
-        exclude: ["password"],
-      },
     });
 
     if (!user) {

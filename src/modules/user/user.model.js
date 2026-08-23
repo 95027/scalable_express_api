@@ -23,10 +23,6 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     role: {
       type: DataTypes.ENUM(ROLES.CUSTOMER, ROLES.ADMIN),
       defaultValue: ROLES.CUSTOMER,
@@ -55,18 +51,6 @@ const User = sequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
-    passwordChangedAt: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    loginAttempts: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0,
-    },
-    lockUntil: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
   },
   {
     tableName: "users",
@@ -76,6 +60,11 @@ const User = sequelize.define(
   },
 );
 
-User.associate = (models) => { };
+User.associate = (models) => {
+  User.hasMany(models.AuthIdentity, {
+    foreignKey: "userId",
+    as: "authIdentities"
+  });
+};
 
 module.exports = User;

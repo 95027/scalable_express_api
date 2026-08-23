@@ -1,9 +1,10 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const env = require("../../config/env");
-const { User } = require("../../models");
+const { User, AuthIdentity } = require("../../models");
 const AppError = require("../../common/errors/AppError");
 const { ROLES } = require("../../common/constants/roles");
+const { AUTH_PROVIDER_TYPES, AUTH_PROVIDERS } = require("../../common/constants/auth.constants");
 
 class Authservice {
   static async register(data) {
@@ -18,47 +19,81 @@ class Authservice {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
-      name,
-      email,
-      role: ROLES.CUSTOMER,
-      password: hashedPassword,
-    });
+    const transaction = await User.sequelize.transaction();
 
-    const safeUser = user.get({ plain: true });
-    delete safeUser.password;
+    try {
+      const user = await User.create({
+        name,
+        email,
+        role: ROLES.CUSTOMER,
+      }, {
+        transaction
+      });
 
-    return safeUser;
+      await AuthIdentity.create({
+        userId: user.id,
+        providerType: AUTH_PROVIDER_TYPES.PASSWORD,
+        providerName: AUTH_PROVIDERS.LOCAL,
+        password: hashedPassword,
+        isVerified: false,
+        isPrimary: true,
+      },
+        { transaction });
+
+      await transaction.commit();
+
+      return user.get({ plain: true });
+
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+
+    }
   }
 
   static async login(data) {
     const { email, password } = data;
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({
+      where: { email }, include: {
+        model: AuthIdentity,
+        as: "authIdentities",
+        where: {
+          providerType: AUTH_PROVIDER_TYPES.PASSWORD,
+          providerName: AUTH_PROVIDERS.LOCAL
+        },
+        required: true
+      }
+    });
 
     if (!user) throw new AppError("Invalid Credentials", 401);
 
-    if (user.lockUntil && user.lockUntil > new Date()) {
+    const identity = user.authIdentities[0];
+
+    if (identity.lockUntil && identity.lockUntil > new Date()) {
       throw new AppError("Account is Locked, Try Again Later", 403);
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, identity.password);
 
     if (!isMatch) {
-      user.loginAttempts += 1;
+      identity.loginAttempts += 1;
 
-      if (user.loginAttempts >= 5) {
-        user.lockUntil = new Date(Date.now() + 15 * 60 * 1000);
-        user.loginAttempts = 0;
+      if (identity.loginAttempts >= 5) {
+        identity.lockUntil = new Date(Date.now() + 15 * 60 * 1000);
+        identity.loginAttempts = 0;
       }
 
-      await user.save();
+      await identity.save();
       throw new AppError("Invalid credentials", 401);
     }
 
-    user.loginAttempts = 0;
-    user.lockUntil = null;
+    identity.loginAttempts = 0;
+    identity.lockUntil = null;
+    identity.lastUsedAt = new Date();
+
     user.lastLoginAt = new Date();
 
+    await identity.save();
     await user.save();
 
     return this.generateTokens(user);
