@@ -12,7 +12,7 @@ class CustomerService {
     static async getCustomers(query) {
         const { page = 1, limit = 10, isActive, search } = query;
 
-        const where = { role: ROLES.CUSTOMER };
+        const where = {};
 
         if (isActive !== undefined) {
             where.isActive = isActive === "true";
@@ -37,11 +37,10 @@ class CustomerService {
         const limitNum = Number(limit);
         const offset = (pageNum - 1) * limitNum;
 
-        const { rows, count } = await User.findAndCountAll({
-            where,
-            attributes: {
-                exclude: ["password"],
-            },
+        const { rows, count } = await Customer.findAndCountAll({
+            include: [
+                { model: User, as: "user", where }
+            ],
             limit: limitNum,
             offset,
             order: [["createdAt", "DESC"]],
