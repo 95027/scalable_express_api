@@ -1,6 +1,10 @@
 const { Op } = require("sequelize");
-const { User } = require("../../models");
+const { User, sequelize, Customer } = require("../../models");
 const { ROLES } = require("../../common/constants/roles");
+const IdentityService = require("../identity/identity.service");
+const { generateTempPassword } = require("../../common/utils/password");
+const { generateCustomerCode } = require("../../common/utils/customerCode");
+const EmailJob = require("../../jobs/email.job");
 
 
 class CustomerService {
@@ -52,6 +56,50 @@ class CustomerService {
                 totalPages: Math.ceil(count / limitNum),
             },
         };
+    }
+
+    static async createCustomer(data) {
+        const transaction = await sequelize.transaction();
+
+        try {
+            const password = generateTempPassword();
+            const customerCode = generateCustomerCode();
+
+            const { user } =
+                await IdentityService.createPasswordAccount(
+                    {
+                        name: data.name,
+                        email: data.email,
+                        phone: data.phone,
+                        password,
+                        role: ROLES.CUSTOMER,
+                    },
+                    transaction
+                );
+
+            const customer = await Customer.create(
+                {
+                    userId: user.id,
+                    customerCode,
+                },
+                { transaction }
+            );
+
+            await transaction.commit();
+
+            EmailJob.customerCredentialMail({
+                to: user.email,
+                name: user.name,
+                email: user.email,
+                password,
+                customerCode,
+            });
+
+            return customer;
+        } catch (error) {
+            await transaction.rollback();
+            throw error;
+        }
     }
 
 }

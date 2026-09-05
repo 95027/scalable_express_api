@@ -5,13 +5,16 @@ const connection = require("../config/redis");
 const worker = new Worker(
   "email",
   async (job) => {
-    switch (job.name) {
+    const { name, data } = job;
+    switch (name) {
       case "welcome-mail":
-        await EmailService.sendWelcomeMail(job.data);
+        await EmailService.sendWelcomeMail(data);
         break;
-
+      case "customer-cred-mail":
+        await EmailService.sendCustomerCredentialsMail(data);
+        break;
       default:
-        throw new Error(`unkown job: ${job.name}`);
+        throw new Error(`unkown job: ${name}`);
     }
   },
   {

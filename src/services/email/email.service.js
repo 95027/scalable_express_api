@@ -1,4 +1,4 @@
-const { welcomeTemplate } = require("./email.template");
+const { welcomeTemplate, customerCredentialsTemplate } = require("./email.template");
 const transporter = require("./email.transport");
 
 class EmailService {
@@ -15,9 +15,29 @@ class EmailService {
   static async sendWelcomeMail({ to, name }) {
     return this.sendEmail({
       to,
-      subject: "Welcome to MyApp 🎉",
+      subject: "Your Logistics App Customer Account 🎉",
       text: `Hello ${name}, welcome to our platform!`,
       html: welcomeTemplate(name),
+    });
+  }
+
+  static async sendCustomerCredentialsMail({
+    to,
+    name,
+    email,
+    password,
+    customerCode,
+  }) {
+    return this.sendEmail({
+      to,
+      subject: "Welcome to MyApp 🎉",
+      text: `Hello ${name}, welcome to our platform!`,
+      html: customerCredentialsTemplate({
+        name,
+        email,
+        password,
+        customerCode,
+      }),
     });
   }
 }

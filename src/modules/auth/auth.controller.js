@@ -4,20 +4,8 @@ const {
   accessCookieOptions,
   refreshCookieOptions,
 } = require("../../common/utils/cookies");
-const EmailJob = require("../../jobs/email.job");
 const AuthService = require("./auth.service");
 
-exports.register = async (req, res, next) => {
-  const user = await AuthService.register(req.validated);
-
-  EmailJob.sendWelcomeMail({ to: user.email, name: user.name });
-
-  res.status(201).json({
-    message: "User registered successfully",
-    success: true,
-    data: user,
-  });
-};
 
 exports.login = async (req, res, next) => {
   const { accessToken, refreshToken } = await AuthService.login(req.validated);

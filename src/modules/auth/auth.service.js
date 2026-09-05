@@ -7,49 +7,6 @@ const { ROLES } = require("../../common/constants/roles");
 const { AUTH_PROVIDER_TYPES, AUTH_PROVIDERS } = require("../../common/constants/auth.constants");
 
 class Authservice {
-  static async register(data) {
-    const { name, email, password } = data;
-    const existing = await User.findOne({
-      where: { email },
-    });
-
-    if (existing) {
-      throw new AppError("Email already exists", 400);
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const transaction = await User.sequelize.transaction();
-
-    try {
-      const user = await User.create({
-        name,
-        email,
-        role: ROLES.CUSTOMER,
-      }, {
-        transaction
-      });
-
-      await AuthIdentity.create({
-        userId: user.id,
-        providerType: AUTH_PROVIDER_TYPES.PASSWORD,
-        providerName: AUTH_PROVIDERS.LOCAL,
-        password: hashedPassword,
-        isVerified: false,
-        isPrimary: true,
-      },
-        { transaction });
-
-      await transaction.commit();
-
-      return user.get({ plain: true });
-
-    } catch (error) {
-      await transaction.rollback();
-      throw error;
-
-    }
-  }
 
   static async login(data) {
     const { email, password } = data;
