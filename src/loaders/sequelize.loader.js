@@ -1,4 +1,4 @@
-const { sequelize } = require("../models");
+const sequelize = require("../config/db");
 
 module.exports = async () => {
   try {
