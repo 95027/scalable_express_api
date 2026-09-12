@@ -1,4 +1,5 @@
 const Customer = require("../modules/customer/customer.model");
+const IdempotencyKey = require("../modules/idempotency/idempotencykey.model");
 const AuthIdentity = require("../modules/identity/authIdentity.model");
 const Shipment = require("../modules/shipment/models/shipment.model");
 const ShipmentAddress = require("../modules/shipment/models/shipmentAddress.model");
@@ -12,6 +13,7 @@ const db = {
   Shipment,
   ShipmentAddress,
   ShipmentPackage,
+  IdempotencyKey,
 };
 
 Object.keys(db).forEach((modelName) => {

@@ -3,7 +3,7 @@ const ShipmentService = require("./shipment.service")
 
 exports.createShipment = async (req, res) => {
 
-    const shipment = await ShipmentService.createShipment(req.validated, req.user.id);
+    const shipment = await ShipmentService.createShipment(req.validated, req.user.id, req.idempotencyKey);
 
     res.status(201).json({ message: "Shipment created successfully", success: true, data: shipment });
 
