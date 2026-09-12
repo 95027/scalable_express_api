@@ -9,7 +9,7 @@ module.exports = (schema) => (req, res, next) => {
       return res.status(400).json({
         success: false,
         errors: error.issues.map((e) => ({
-          field: e.path[0],
+          field: e.path.join("."),
           message: e.message,
         })),
       });

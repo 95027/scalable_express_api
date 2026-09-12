@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../../../config/db");
+const { SHIPMENT_STATUS } = require("../../../common/constants/shipment.constants");
 
 const Shipment = sequelize.define(
     "Shipment",
@@ -22,15 +23,7 @@ const Shipment = sequelize.define(
         },
 
         status: {
-            type: DataTypes.ENUM(
-                "CREATED",
-                "CONFIRMED",
-                "PICKED_UP",
-                "IN_TRANSIT",
-                "OUT_FOR_DELIVERY",
-                "DELIVERED",
-                "CANCELLED"
-            ),
+            type: DataTypes.ENUM(Object.values(SHIPMENT_STATUS)),
             allowNull: false,
             defaultValue: "CREATED",
         },

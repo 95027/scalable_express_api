@@ -1,10 +1,11 @@
 const { Op } = require("sequelize");
-const { User, sequelize, Customer } = require("../../models");
+const { User, Customer } = require("../../models");
 const { ROLES } = require("../../common/constants/roles");
 const IdentityService = require("../identity/identity.service");
 const { generateTempPassword } = require("../../common/utils/password");
 const { generateCustomerCode } = require("../../common/utils/customerCode");
 const EmailJob = require("../../jobs/email.job");
+const sequelize = require("../../config/db");
 
 
 class CustomerService {
