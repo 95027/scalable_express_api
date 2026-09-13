@@ -1,5 +1,5 @@
 const Customer = require("../modules/customer/customer.model");
-const IdempotencyKey = require("../modules/idempotency/idempotencykey.model");
+const IdempotencyKey = require("../modules/idempotency/idempotencyKey.model");
 const AuthIdentity = require("../modules/identity/authIdentity.model");
 const Shipment = require("../modules/shipment/models/shipment.model");
 const ShipmentAddress = require("../modules/shipment/models/shipmentAddress.model");

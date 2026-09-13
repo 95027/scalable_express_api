@@ -23,5 +23,45 @@ services:
     ports:
       - "${REDIS_PORT}:6379"
 
+  backend:
+    image: logistics-backend
+    container_name: logistics-backend
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+    ports:
+      - "${PORT}:5000"
+
+    depends_on:
+      - mysql
+      - redis
+  worker:
+    image: logistics-backend
+    container_name: logistics-worker
+    restart: unless-stopped
+
+    command: npm run jobs
+
+    env_file:
+      - .env
+
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+    depends_on:
+      - mysql
+      - redis
+
 volumes:
   mysql_data:
