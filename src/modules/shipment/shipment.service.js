@@ -1,8 +1,10 @@
+const { Op, where: sequelizeWhere, col } = require("sequelize");
 const { SHIPMENT_STATUS } = require("../../common/constants/shipment.constants");
 const AppError = require("../../common/errors/AppError");
 const { generateShipmentCode } = require("../../common/utils/shipmentCode");
 const sequelize = require("../../config/db");
-const { Customer, Shipment, ShipmentAddress, ShipmentPackage, IdempotencyKey } = require("../../models");
+const { Customer, Shipment, ShipmentAddress, ShipmentPackage, IdempotencyKey, User } = require("../../models");
+const { IDEMPOTENCY_OPERATION } = require("../../common/constants/idempotency.operation.constants");
 
 
 class ShipmentService {
@@ -15,7 +17,21 @@ class ShipmentService {
             delivery,
         } = data;
 
-        const customer = await Customer.findByPk(customerId);
+        const customer = await Customer.findOne({
+            where: {
+                id: customerId,
+            },
+            include: [
+                {
+                    model: User,
+                    as: "user",
+                    attributes: ["id", "isActive"],
+                    where: {
+                        isActive: true,
+                    },
+                },
+            ],
+        });
 
         if (!customer) {
             throw new AppError("Customer not found", 404);
@@ -24,7 +40,7 @@ class ShipmentService {
         const existingRecord = await IdempotencyKey.findOne({
             where: {
                 key: idempotencyKey,
-                operation: "CREATE_SHIPMENT",
+                operation: IDEMPOTENCY_OPERATION.CREATE_SHIPMENT,
                 userId,
             },
         });
@@ -51,22 +67,20 @@ class ShipmentService {
             );
         }
 
-        const shipment = await sequelize.transaction(async (transaction) => {
+        return sequelize.transaction(async (transaction) => {
             const idempotencyRecord = await IdempotencyKey.create(
                 {
                     key: idempotencyKey,
-                    operation: "CREATE_SHIPMENT",
+                    operation: IDEMPOTENCY_OPERATION.CREATE_SHIPMENT,
                     userId,
                     status: "PROCESSING",
                 },
                 { transaction }
             );
 
-            const shipmentCode = generateShipmentCode();
-
             const shipment = await Shipment.create(
                 {
-                    shipmentCode,
+                    shipmentCode: generateShipmentCode(),
                     customerId,
                     status: SHIPMENT_STATUS.CREATED,
                     createdBy: userId,
@@ -74,33 +88,31 @@ class ShipmentService {
                 { transaction }
             );
 
-            await Promise.all([
-                ShipmentAddress.create(
-                    {
-                        shipmentId: shipment.id,
-                        type: "PICKUP",
-                        ...pickup,
-                    },
-                    { transaction }
-                ),
+            await ShipmentAddress.create(
+                {
+                    shipmentId: shipment.id,
+                    type: "PICKUP",
+                    ...pickup,
+                },
+                { transaction }
+            );
 
-                ShipmentAddress.create(
-                    {
-                        shipmentId: shipment.id,
-                        type: "DELIVERY",
-                        ...delivery,
-                    },
-                    { transaction }
-                ),
+            await ShipmentAddress.create(
+                {
+                    shipmentId: shipment.id,
+                    type: "DELIVERY",
+                    ...delivery,
+                },
+                { transaction }
+            );
 
-                ShipmentPackage.create(
-                    {
-                        shipmentId: shipment.id,
-                        ...packageData,
-                    },
-                    { transaction }
-                ),
-            ]);
+            await ShipmentPackage.create(
+                {
+                    shipmentId: shipment.id,
+                    ...packageData,
+                },
+                { transaction }
+            );
 
             await idempotencyRecord.update(
                 {
@@ -112,12 +124,78 @@ class ShipmentService {
 
             return shipment;
         });
-
-        return shipment;
     }
 
     static async getAllShipments(query) {
+        const { page, limit, search, status } = query;
 
+        const whereCondition = {};
+        const offset = (page - 1) * limit;
+
+        if (search) {
+            const searchValue = `%${search}%`;
+
+            whereCondition[Op.or] = [
+                {
+                    shipmentCode: {
+                        [Op.like]: searchValue,
+                    },
+                },
+                sequelizeWhere(
+                    col("customer.customer_code"),
+                    Op.like,
+                    searchValue
+                ),
+                sequelizeWhere(
+                    col("customer->user.name"),
+                    Op.like,
+                    searchValue
+                ),
+                sequelizeWhere(
+                    col("customer->user.email"),
+                    Op.like,
+                    searchValue
+                ),
+            ];
+        }
+
+        if (status) {
+            whereCondition.status = status;
+        }
+
+        const { rows, count } = await Shipment.findAndCountAll({
+            where: whereCondition,
+            include: [
+                {
+                    model: Customer,
+                    as: "customer",
+                    attributes: ["id", "customerCode", "userId"],
+                    include: [
+                        {
+                            model: User,
+                            as: "user",
+                            attributes: ["id", "name", "email"],
+                        },
+                    ],
+                },
+            ],
+            limit,
+            offset,
+            order: [
+                ["createdAt", "DESC"],
+                ["id", "DESC"],
+            ],
+        });
+
+        return {
+            shipments: rows,
+            pagination: {
+                page,
+                limit,
+                total: count,
+                totalPages: Math.ceil(count / limit),
+            },
+        };
     }
 
 }

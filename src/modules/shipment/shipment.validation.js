@@ -1,5 +1,20 @@
 const { z } = require("zod");
 
+exports.getShipmentsSchema = z.object({
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().positive().max(100).default(10),
+    search: z.string().trim().max(100).optional(),
+    status: z.enum([
+        "CREATED",
+        "CONFIRMED",
+        "PICKED_UP",
+        "IN_TRANSIT",
+        "OUT_FOR_DELIVERY",
+        "DELIVERED",
+        "CANCELLED",
+    ]).optional(),
+});
+
 exports.createShipmentSchema = z.object({
     customerId: z.string().uuid(),
 

@@ -11,7 +11,7 @@ exports.createShipment = async (req, res) => {
 
 exports.getAllShipments = async (req, res) => {
 
-    const { shipments, pagination } = await ShipmentService.getAllShipments(req.query);
+    const { shipments, pagination } = await ShipmentService.getAllShipments(req.validated);
 
     res.status(200).json({ success: true, data: shipments, pagination })
 

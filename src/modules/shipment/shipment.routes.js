@@ -3,9 +3,9 @@ const idempotencyMiddleware = require('../../common/middlewares/idempotency.midd
 const validate = require('../../common/middlewares/validate.middleware');
 const router = require('express').Router();
 const shipmentController = require('./shipment.controller');
-const { createShipmentSchema } = require('./shipment.validation');
+const { createShipmentSchema, getShipmentsSchema } = require('./shipment.validation');
 
-router.get("/", asyncHandler(shipmentController.getAllShipments));
+router.get("/", validate(getShipmentsSchema, "query"), asyncHandler(shipmentController.getAllShipments));
 router.post("/", idempotencyMiddleware, validate(createShipmentSchema), asyncHandler(shipmentController.createShipment));
 
 
