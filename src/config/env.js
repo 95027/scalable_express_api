@@ -5,10 +5,11 @@ module.exports = {
   nodeEnv: process.env.NODE_ENV,
   clientUrls: process.env.CLIENT_URLS,
   db: {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    name: process.env.DB_NAME,
+    host: process.env.MYSQL_HOST,
+    port: process.env.MYSQL_PORT,
+    user: process.env.MYSQL_USER,
+    password: process.env.MYSQL_PASSWORD,
+    name: process.env.MYSQL_DATABASE,
   },
   jwt: {
     secret: process.env.JWT_SECRET,
@@ -23,4 +24,8 @@ module.exports = {
     pass: process.env.SMTP_PASS,
   },
   fileBaseUrl: process.env.FILE_BASE_URL,
+  redis: {
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT,
+  }
 };

@@ -1,8 +1,9 @@
 const { Redis } = require("ioredis");
+const env = require("./env");
 
 const connection = new Redis({
-  host: "127.0.0.1",
-  port: 6379,
+  host: env.redis.host,
+  port: env.redis.port,
   maxRetriesPerRequest: null,
 });
 
